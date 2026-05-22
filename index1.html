@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MindAR Demo</title>
+
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial;
+    }
+
+    #status {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      max-width: 90vw;
+    }
+
+    .overlay {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      background: black;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="status">Point your camera at the target image</div>
+
+<div class="overlay">
+  <button class="btn" onclick="openWhatsApp()">WhatsApp</button>
+  <button class="btn" onclick="openWebsite()">Website</button>
+  <button class="btn" onclick="callNow()">Call</button>
+</div>
+
+<a-scene
+  mindar-image="imageTargetSrc: ./target.mind; autoStart: true; uiScanning: true; uiLoading: true; uiError: true;"
+  color-space="sRGB"
+  renderer="colorManagement: true; physicallyCorrectLights: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false"
+>
+
+<a-assets>
+
+  <video
+    id="promo"
+    src="./intro.mp4"
+    preload="auto"
+    loop
+    muted
+    crossorigin="anonymous"
+    webkit-playsinline
+    playsinline
+  ></video>
+
+  <img id="logo" src="./logo.png" crossorigin="anonymous" />
+
+</a-assets>
+
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-video src="#promo" width="1" height="0.5625" position="0 0 0"></a-video>
+    <a-image src="#logo" width="0.7" height="0.25" position="0 0.45 0"></a-image>
+  </a-entity>
+
+</a-scene>
+
+<script>
+  function openWhatsApp() {
+    window.open("https://wa.me/919538058899", "_blank", "noopener,noreferrer");
+  }
+
+  function openWebsite() {
+    window.open("https://example.com", "_blank", "noopener,noreferrer");
+  }
+
+  function callNow() {
+    window.location.href = "tel:+911234567890";
+  }
+
+  window.openWhatsApp = openWhatsApp;
+  window.openWebsite = openWebsite;
+  window.callNow = callNow;
+
+  const sceneEl = document.querySelector("a-scene");
+  const videoEl = document.querySelector("#promo");
+  const statusEl = document.querySelector("#status");
+
+  sceneEl.addEventListener("targetFound", () => {
+    statusEl.textContent = "Target found";
+    videoEl.play().catch(() => {
+      statusEl.textContent = "Tap screen to start video";
+    });
+  });
+
+  sceneEl.addEventListener("targetLost", () => {
+    statusEl.textContent = "Target lost";
+    videoEl.pause();
+  });
+
+  if (window.location.protocol === "file:") {
+    statusEl.textContent = "Run this page via http://localhost (not file://)";
+  }
+</script>
+
+</body>
+</html>
