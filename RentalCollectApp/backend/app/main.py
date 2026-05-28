@@ -36,7 +36,17 @@ def create_app() -> FastAPI:
         default_response_class=ORJSONResponse,
     )
 
-    if settings.cors_origin_list:
+    # For local/dev (especially Flutter web), use permissive CORS.
+    # In production, restrict origins via CORS_ORIGINS.
+    if settings.ENV.lower() != "production":
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=False,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    elif settings.cors_origin_list:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=settings.cors_origin_list,
