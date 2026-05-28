@@ -16,9 +16,12 @@ from app.api.errors import app_error_handler, validation_error_handler
 from app.api.health import router as health_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
+from app.middleware.db_logging import DbLoggingMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routes.api_v1 import router as api_v1_router
 from app.utils.exceptions import AppError
+from app.db.session import AsyncSessionLocal
+from app.services.logs import LogService
 
 
 def create_app() -> FastAPI:
@@ -43,12 +46,20 @@ def create_app() -> FastAPI:
         )
 
     app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(DbLoggingMiddleware)
 
     app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(RequestValidationError, validation_error_handler)
 
     app.include_router(health_router, prefix=settings.API_V1_PREFIX)
     app.include_router(api_v1_router, prefix=settings.API_V1_PREFIX)
+
+    @app.on_event("startup")
+    async def _cleanup_old_logs() -> None:
+        # Simple built-in retention: keep last 2 days.
+        async with AsyncSessionLocal() as session:
+            await LogService(session).cleanup_older_than_days(days=2)
+
     return app
 
 

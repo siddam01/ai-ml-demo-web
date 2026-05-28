@@ -36,7 +36,10 @@ class _LoginScreenState extends State<LoginScreen> {
       final tokens = await widget.store.auth.login(mobile: _mobile.text.trim(), password: _password.text);
       await widget.store.setTokens(access: tokens.accessToken, refresh: tokens.refreshToken);
     } on ApiException catch (e) {
-      setState(() => _error = 'Login failed (${e.statusCode})');
+      final msg = (e.body is Map && (e.body as Map).containsKey('error'))
+          ? ((e.body as Map)['error'] as Map)['message']?.toString()
+          : null;
+      setState(() => _error = msg ?? 'Login failed (${e.statusCode})');
     } catch (e) {
       setState(() => _error = 'Login failed');
     } finally {
@@ -149,7 +152,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       setState(() => _success = 'Registered: $id');
     } on ApiException catch (e) {
-      setState(() => _error = 'Register failed (${e.statusCode})');
+      final msg = (e.body is Map && (e.body as Map).containsKey('error'))
+          ? ((e.body as Map)['error'] as Map)['message']?.toString()
+          : null;
+      setState(() => _error = msg ?? 'Register failed (${e.statusCode})');
     } catch (_) {
       setState(() => _error = 'Register failed');
     } finally {
